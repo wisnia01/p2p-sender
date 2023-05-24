@@ -3,6 +3,9 @@ from tkinter import Text, Label, Button
 from tkinter import filedialog
 import ecb_methods as ecb
 import cbc_methods as cbc
+import helpers
+import os
+import PyPDF2
 
 
 def upload_file():
@@ -25,6 +28,21 @@ def main():
     print("cbc now")
     iv, cipher = cbc.encrypt_cbc(plaintext, key)
     print(cbc.decrypt_cbc(cipher, key, iv))
+    output_directory = "outputs/"
+
+    print("test loading pdf file")
+    pdf = PyPDF2.PdfReader(open("test_files/ENG_SCS_23_project.pdf", "rb"))
+    print(pdf)
+    for page_number in range(len(pdf.pages)):
+        print(page_number)
+        pdf_writer = PyPDF2.PdfWriter()
+        page = pdf.pages[page_number]
+        pdf_writer.add_page(page)
+        part_pdf_filename = f"testfile_{page_number}.pdf"
+        output_filepath= os.path.join(output_directory, part_pdf_filename)
+        with open(output_filepath, 'wb') as output_file:
+            pdf_writer.write(output_file)
+            output_file.close()
 
     print("GUI")
     root = tk.Tk()
