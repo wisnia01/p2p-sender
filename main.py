@@ -6,6 +6,7 @@ import cbc_methods as cbc
 import helpers
 import os
 import PyPDF2
+import socket
 
 
 def upload_file():
@@ -43,6 +44,29 @@ def main():
         with open(output_filepath, 'wb') as output_file:
             pdf_writer.write(output_file)
             output_file.close()
+
+
+    
+    print("TCP_test")
+    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server_address = ('localhost', 9999)
+    server_socket.bind(server_address)
+    server_socket.listen(1)
+    print('Server is listening on {}:{}'.format(*server_address))
+    client_socket, client_address = server_socket.accept()
+    print('Client connected:', client_address)
+
+    # Receive data from the client
+    data = client_socket.recv(1024)
+    print('Received data:', data.decode())
+
+    # Send a response back to the client
+    response = 'Message received'
+    client_socket.send(response.encode())
+
+    # Close the client socket
+    client_socket.close()
+
 
     print("GUI")
     root = tk.Tk()
