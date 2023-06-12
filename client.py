@@ -1,25 +1,20 @@
 import threading
 import user as u
-import cbc_methods
-from Crypto.Cipher import AES
+import argparse
 
 host = "localhost"
-sendport = 5000
-recivport = 5001
 
-def main():
+def main(sendport, recivport):
+    
     user = u.User(host, sendport, recivport)
     receive_thread = threading.Thread(target=user.receive_message)
     receive_thread.start()
-    
-    print(cbc_methods.encrypt_cbc("dupa", "aaaaaaaaaaaaaaaa"))
-    print(AES.block_size)
     
     
     while True:
         x = input()
         if x == "s":
-            user.send_message("dupa")
+            user.send_encrypted_message("dupa")
         elif x == "l":
             print(user.last_message)
         elif x == "sendpubkey":
@@ -36,4 +31,10 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument("sendport", type=int, help="Port where the messeges are sent")
+    parser.add_argument("recivport", type=int, help="Port to receive messages from another client")
+    
+    args = parser.parse_args()
+    main(args.sendport, args.recivport)
