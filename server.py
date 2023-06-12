@@ -13,7 +13,7 @@ def main():
     while True:
         x = input()
         if x == "s":
-            user.send_message("dupa")
+            user.send_encrypted_message("dupa")
         elif x == "l":
             print(user.last_message)
         elif x == "sendpubkey":
