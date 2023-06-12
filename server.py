@@ -21,10 +21,10 @@ def main():
         elif x == "connect":
             user.create_connection_with_friend()
         elif x == "debug":
-            print(user.public_key)
+            #print(user.public_key)
             # print(user.private_key)
-            print(user.friends_pubkey)
-            # print(user.session_key)
+            #print(user.friends_pubkey)
+            print(user.session_key)
             
 
 if __name__ == "__main__":
