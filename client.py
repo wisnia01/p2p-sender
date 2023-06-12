@@ -6,6 +6,8 @@ host = "localhost"
 
 def main(sendport, recivport):
     
+    print("Podaj hosta:")
+    host = input()
     user = u.User(host, sendport, recivport)
     receive_thread = threading.Thread(target=user.receive_message)
     receive_thread.start()
