@@ -5,7 +5,6 @@ def encrypt_ecb(plaintext, key):
     cipher = AES.new(key, AES.MODE_ECB)
     padded_plaintext = pad(plaintext, AES.block_size)
     print(padded_plaintext)
-    print("dada")
     ciphertext = cipher.encrypt(padded_plaintext)
 
     return ciphertext
