@@ -1,5 +1,7 @@
 import threading
 import user as u
+import cbc_methods
+from Crypto.Cipher import AES
 
 host = "localhost"
 sendport = 5000
@@ -9,6 +11,11 @@ def main():
     user = u.User(host, sendport, recivport)
     receive_thread = threading.Thread(target=user.receive_message)
     receive_thread.start()
+    
+    print(cbc_methods.encrypt_cbc("dupa", "aaaaaaaaaaaaaaaa"))
+    print(AES.block_size)
+    
+    
     while True:
         x = input()
         if x == "s":

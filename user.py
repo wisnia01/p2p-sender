@@ -3,6 +3,7 @@ import helpers
 import json
 import rsa_methods as rsa
 import cbc_methods as cbc
+from Crypto.Cipher import AES
 
 class User:
     
@@ -15,10 +16,11 @@ class User:
         self.last_message = None
         self.session_key = None
         
-    def send_message(self, message, type="message"):
+    def send_message(self, message, type="message", iv=None):
         data = {
             'Content-Type': type,
-            'Message': message
+            'Message': message,
+            'Iv': iv
         }
         json_string = json.dumps(data)
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -40,7 +42,11 @@ class User:
             elif data["Content-Type"]=="sessionkey":
                 self.session_key=rsa.decrypt_message_with_privatekey(data["Message"], self.private_key)
             else:
-                print("Received message:", data["Message"])
+                encrypted_message=data["Message"]
+                iv = data["Iv"]
+                message = cbc.decrypt_cbc(encrypted_message, self.session_key, iv)
+                print("Received message:", message)
+                
                 self.last_message = data["Message"]
             conn.close()
             s.close()
@@ -54,6 +60,11 @@ class User:
         self.send_message(encrypted_sessionkey, type="sessionkey")
     
     def create_connection_with_friend(self):
-        self.session_key = helpers.generate_random_key(16)
+        self.session_key = helpers.generate_random_key(AES.block_size)
         self.send_pubkey()
         self.send_sessionkey()
+        
+    def send_encrypted_message(self, message):
+        iv, encrypted_message = cbc.encrypt_cbc(message, self.session_key)
+        self.send_message(encrypted_message, iv=iv)
+        
