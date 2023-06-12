@@ -1,7 +1,0 @@
-priv and pub key generate
-connect with other client using TCP
-send him pub key
-generate session key
-cipher with clients pub key and send session key using TCP
-client using priv key to decrypt session key
-since now we encyrpt messages using EAS algorithm with session key and send it using TCP
