@@ -3,11 +3,6 @@ import tkinter.ttk as ttk
 from tkinter import Button, Text, Label
 from tkinter import filedialog 
 
-import tkinter as tk
-import tkinter.ttk as ttk
-from tkinter import Button, Text, Label
-from tkinter import filedialog 
-
 class Window(tk.Tk):
     def __init__(self):
         super().__init__()
@@ -58,7 +53,7 @@ class Window(tk.Tk):
         
         self.progress = tk.IntVar()
         self.progress.set(0)
-        self.progressbar = ttk.Progressbar(self.file_frame, length=((self.window_width/2) - 50), maximum=100, variable=self.progress, orient='horizontal', mode='determinate')
+        self.progressbar = ttk.Progressbar(self.file_frame, length=((self.window_width/2) - 50), maximum=101, variable=self.progress, orient='horizontal', mode='determinate')
         self.progressbar.grid(row=5, column=0, columnspan=2)
         
         # ! Message frame widgets !
@@ -76,7 +71,7 @@ class Window(tk.Tk):
         
         # ! Receive frame widgets !
         # show last 5 messages in the box
-        self.last_messages = [tk.Label(self.receive_frame, text=" ", justify=tk.LEFT, padx=self.padding, background="#FF8DC7") for i in range(5)]
+        self.last_messages = [tk.Label(self.receive_frame, text=" ", justify=tk.LEFT, padx=self.padding, background="#FF8DC7") for i in range(10)]
         
         for idx, message in enumerate(self.last_messages):
             message.grid(row=idx, column=0, sticky='w', pady=self.padding)
@@ -88,16 +83,22 @@ class Window(tk.Tk):
     def send_encrypted_file(self):
         # TODO
         # add progress bar moving 
+        self.progressbar.step(25)
+        
         pass
         
     def send_encrypted_message(self):
         # TODO
         message = self.message_textbox.get(1.0, "end-1c")
-        self.last_messages[0]['text'] = message
-        
         pass
     
     def update_messages(self):
         # TODO
+
+        # replace with getting the message from receive message
+        message = self.message_textbox.get(1.0, "end-1c")
         
-        pass
+        for idx in range(len(self.last_messages)-1, 0, -1):
+           self.last_messages[idx]['text'] = self.last_messages[idx-1]['text']
+        
+        self.last_messages[0]['text'] = message
