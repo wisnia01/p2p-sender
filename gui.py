@@ -39,6 +39,7 @@ class Window(tk.Tk):
         self.receive_frame.grid_propagate(0)
         
         self.user = user
+        self.actual_received_messages = 0
 
     def create_widgets(self):
         # ! File frame widgets !
@@ -105,16 +106,23 @@ class Window(tk.Tk):
     def update_messages(self):
         # TODO
 
-        message = self.message_textbox.get(1.0, "end-1c")
-        
-        for idx in range(len(self.last_messages)-1, 0, -1):
-            self.last_messages[idx]['text'] = self.last_messages[idx-1]['text']
-        
-        self.last_messages[0]['text'] = message
+        # message = self.message_textbox.get(1.0, "end-1c")
+        if self.actual_received_messages != self.user.received_messages:
+            for idx in range(len(self.last_messages)-1, 0, -1):
+                self.last_messages[idx]['text'] = self.last_messages[idx-1]['text']
+                
+            self.last_messages[0]['text'] = self.user.last_message
+            self.actual_received_messages = self.actual_received_messages + 1
+        self.after(1000, self.update_messages)
 
     def send_pubkey(self):
         self.user.send_pubkey()
     
     def create_connection_with_friend(self):
         self.user.create_connection_with_friend()
-        self.connect_label['text'] = "Connected."
+        
+    def check_if_connected(self):
+        if self.user.friends_pubkey and self.user.session_key:
+            self.connect_label['text'] = "Connected."
+        self.after(1000, self.check_if_connected)
+            

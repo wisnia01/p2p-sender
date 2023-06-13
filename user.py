@@ -15,6 +15,7 @@ class User:
         self.friends_pubkey = None
         self.last_message = None
         self.session_key = None
+        self.received_messages = 0
         
     def send_message(self, message, type="message", iv=None):
         data = {
@@ -46,8 +47,8 @@ class User:
                 iv = data["Iv"]
                 message = cbc.decrypt_cbc(encrypted_message, self.session_key, iv)
                 print("Received message:", message)
-                
-                self.last_message = data["Message"]
+                self.received_messages = self.received_messages + 1    
+                self.last_message = message
             conn.close()
             s.close()
         
