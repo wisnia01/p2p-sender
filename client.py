@@ -13,24 +13,24 @@ def main(sendport, recivport):
     receive_thread = threading.Thread(target=user.receive_message)
     receive_thread.start()
     
-    while True:
-        x = input()
-        if x == "s":
-            user.send_encrypted_message("dupa")
-        elif x == "l":
-            print(user.last_message)
-        elif x == "sendpubkey":
-            user.send_pubkey()
-        elif x == "connect":
-            user.create_connection_with_friend()
-        elif x == "debug":
-            #print(user.public_key)
-            #print(user.private_key)
-            # print(user.friends_pubkey)
-            print(user.session_key)
+    # while True:
+    #     x = input()
+    #     if x == "s":
+    #         user.send_encrypted_message("dupa")
+    #     elif x == "l":
+    #         print(user.last_message)
+    #     elif x == "sendpubkey":
+    #         user.send_pubkey()
+    #     elif x == "connect":
+    #         user.create_connection_with_friend()
+    #     elif x == "debug":
+    #         #print(user.public_key)
+    #         #print(user.private_key)
+    #         # print(user.friends_pubkey)
+    #         print(user.session_key)
             
-    # main_window = gui.Window()
-    # main_window.mainloop()
+    main_window = gui.Window(user)
+    main_window.mainloop()
             
 
 

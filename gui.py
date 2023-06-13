@@ -2,9 +2,10 @@ import tkinter as tk
 import tkinter.ttk as ttk
 from tkinter import Button, Text, Label
 from tkinter import filedialog 
+import user as u
 
 class Window(tk.Tk):
-    def __init__(self):
+    def __init__(self, user):
         super().__init__()
         
         # set properties of the window
@@ -36,6 +37,8 @@ class Window(tk.Tk):
         self.create_widgets()
         
         self.receive_frame.grid_propagate(0)
+        
+        self.user = user
 
     def create_widgets(self):
         # ! File frame widgets !
@@ -75,7 +78,6 @@ class Window(tk.Tk):
         
         for idx, message in enumerate(self.last_messages):
             message.grid(row=idx, column=0, columnspan=2, sticky='w', pady=self.padding)
-            
         
         tk.Button(self.receive_frame, background='white', padx=self.padding*8, text = "Send public key", command=self.send_pubkey).grid(row=21, column=0, pady=self.padding*4)
         tk.Button(self.receive_frame, background='white', padx=self.padding*12, text = "Connect", command=self.create_connection_with_friend).grid(row=22, column=0, pady=self.padding)
@@ -96,7 +98,8 @@ class Window(tk.Tk):
         
     def send_encrypted_message(self):
         # TODO
-
+        message = self.message_textbox.get(1.0, "end-1c")
+        self.user.send_encrypted_message(message)
         pass
     
     def update_messages(self):
@@ -105,16 +108,13 @@ class Window(tk.Tk):
         message = self.message_textbox.get(1.0, "end-1c")
         
         for idx in range(len(self.last_messages)-1, 0, -1):
-           self.last_messages[idx]['text'] = self.last_messages[idx-1]['text']
+            self.last_messages[idx]['text'] = self.last_messages[idx-1]['text']
         
         self.last_messages[0]['text'] = message
 
     def send_pubkey(self):
-        # TODO
-        
-        pass
+        self.user.send_pubkey()
     
     def create_connection_with_friend(self):
-        # TODO
-        #if connected
+        self.user.create_connection_with_friend()
         self.connect_label['text'] = "Connected."
