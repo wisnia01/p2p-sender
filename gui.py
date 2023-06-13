@@ -1,65 +1,103 @@
 import tkinter as tk
-from tkinter import *
-from tkinter import filedialog
+import tkinter.ttk as ttk
+from tkinter import Button, Text, Label
+from tkinter import filedialog 
 
-def init_gui():
-    
-    root = tk.Tk()
+import tkinter as tk
+import tkinter.ttk as ttk
+from tkinter import Button, Text, Label
+from tkinter import filedialog 
 
-    # set properties of the window
-    root.title("BSK Project")
+class Window(tk.Tk):
+    def __init__(self):
+        super().__init__()
+        
+        # set properties of the window
+        self.title("BSK Project")
+        
+        self.window_width = 1000
+        self.window_height = 800
+        screen_width = self.winfo_screenwidth()
+        screen_height = self.winfo_screenheight()
+        
+        self.padding = 5
+        self.background_color = "#FFDDD2"
 
-    window_width = 1000
-    window_height = 800
-    screen_width = root.winfo_screenwidth()
-    screen_height = root.winfo_screenheight()
-    padding = 5
-    background_color = "#FFDDD2"
+        center_x = int(screen_width/2 - self.window_width / 2)
+        center_y = int(screen_height/2 - self.window_height / 2)
+        
+        self.geometry(f'{self.window_width}x{self.window_height}+{center_x}+{center_y}')
+        self.configure(bg=self.background_color)
+        
+        self.file_frame = tk.LabelFrame(self, text="Send a file", bg="#FFACC7", padx=self.padding, pady=self.padding, width=(self.window_width/2 - self.padding*4), height=(self.window_height/2 - self.padding*4))
+        self.file_frame.grid(row=0, column=0, sticky="nsew", padx=(self.padding*3,self.padding), pady=(self.padding,self.padding))
+        
+        self.message_frame = tk.LabelFrame(self, text="Send a message", bg="#FFB9B9", padx=self.padding, pady=self.padding, width=(self.window_width/2 - self.padding*4), height=(self.window_height/2 - self.padding*4))
+        self.message_frame.grid(row=1, column=0, sticky="nsew", padx=(self.padding*3,self.padding), pady=(self.padding,self.padding))
+        
+        self.receive_frame = tk.LabelFrame(self, text="Received messages and files", bg="#FF8DC7", padx=self.padding, pady=self.padding, width=(self.window_width/2 - self.padding*4), height=(self.window_height - self.padding*4))
+        self.receive_frame.grid(row=0, column=1, rowspan=2,sticky="nsew", padx=(self.padding*2,self.padding), pady=(self.padding,self.padding)) 
+        
+        self.create_widgets()
+        
+        self.receive_frame.grid_propagate(0)
 
-    center_x = int(screen_width/2 - window_width / 2)
-    center_y = int(screen_height/2 - window_height / 2)
+    def create_widgets(self):
+        # ! File frame widgets !
+        filename = "No file selected."
+        tk.Button(self.file_frame, background="white", padx=self.padding*8, text = "Upload file", command=self.upload_file).grid(row=0, column=0, pady=self.padding*4)
+        tk.Label(self.file_frame, text=filename, justify=tk.LEFT, width=39, background="#FFACC7", padx=self.padding).grid(row=0, column=1, padx=self.padding*2)
+        
+        #menu for choosing the encryption algorithm
+        self.file_algorithm = tk.IntVar()
+        tk.Label(self.file_frame, text="Choose algorithm", justify=tk.LEFT, padx=self.padding, background="#FFACC7").grid(row=1, column=0, sticky='nw')
+        tk.Radiobutton(self.file_frame, text="ECB", indicatoron=0, padx=self.padding*8, variable=self.file_algorithm, value=1, background="#FFACC7").grid(row=2, column=0, sticky='nw', pady=self.padding)
+        tk.Radiobutton(self.file_frame, text="CBC", indicatoron=0, padx=self.padding*8, variable=self.file_algorithm, value=2, background="#FFACC7").grid(row=3, column=0, sticky='nw', pady=self.padding)
 
-    root.geometry(f'{window_width}x{window_height}+{center_x}+{center_y}')
-    root.configure(bg=background_color)
+        tk.Button(self.file_frame, background="white", padx=self.padding*6, text = "Submit", command=self.send_encrypted_file).grid(row=4, column=0, columnspan=2, sticky='se', pady=self.padding*5)
+        
+        self.progress = tk.IntVar()
+        self.progress.set(0)
+        self.progressbar = ttk.Progressbar(self.file_frame, length=((self.window_width/2) - 50), maximum=100, variable=self.progress, orient='horizontal', mode='determinate')
+        self.progressbar.grid(row=5, column=0, columnspan=2)
+        
+        # ! Message frame widgets !
+        # textbox for inputting text
+        self.message_textbox = tk.Text(self.message_frame, height=16, width=55)
+        self.message_textbox.grid(row=0, column=0, sticky="nsew", padx=self.padding, pady = self.padding*2)
+        
+        #menu for choosing the encryption algorithm
+        self.message_algorithm = tk.IntVar()
+        tk.Label(self.message_frame, text="Choose algorithm", justify=tk.LEFT, padx=self.padding, background="#FFB9B9").grid(row=1, column=0, sticky='w', pady=self.padding)
+        tk.Radiobutton(self.message_frame, text="ECB", indicatoron=0, padx=self.padding*8, variable=self.message_algorithm, value=1, background="#FFB9B9").grid(row=2, column=0, sticky='w', pady=self.padding)
+        tk.Radiobutton(self.message_frame, text="CBC", indicatoron=0, padx=self.padding*8, variable=self.message_algorithm, value=2, background="#FFB9B9").grid(row=3, column=0, sticky='w', pady=self.padding)
+        
+        tk.Button(self.message_frame, background="white", padx=self.padding*6, text = "Submit", command=self.send_encrypted_message).grid(row=4, column=0, sticky='e', pady=self.padding*2)
+        
+        # ! Receive frame widgets !
+        # show last 5 messages in the box
+        self.last_messages = [tk.Label(self.receive_frame, text=" ", justify=tk.LEFT, padx=self.padding, background="#FF8DC7") for i in range(5)]
+        
+        for idx, message in enumerate(self.last_messages):
+            message.grid(row=idx, column=0, sticky='w', pady=self.padding)
+        
+    def upload_file(self):
+        # TODO
+        pass
     
-    file_frame = tk.LabelFrame(root, text="Send a file", bg="#FFACC7", padx=padding, pady=padding, width=(window_width/2 - padding*4), height=(window_height/2 - padding*4))
-    file_frame.grid(row=0, column=0, sticky="nsew", padx=(padding*3,padding), pady=(padding,padding))
-    #file_frame.grid_rowconfigure(1, weight=1)
+    def send_encrypted_file(self):
+        # TODO
+        # add progress bar moving 
+        pass
+        
+    def send_encrypted_message(self):
+        # TODO
+        message = self.message_textbox.get(1.0, "end-1c")
+        self.last_messages[0]['text'] = message
+        
+        pass
     
-    message_frame = tk.LabelFrame(root, text="Send a message", bg="#FFB9B9", padx=padding, pady=padding, width=(window_width/2 - padding*4), height=(window_height/2 - padding*4))
-    message_frame.grid(row=1, column=0, sticky="nsew", padx=(padding*3,padding), pady=(padding,padding))
-    #message_frame.grid_rowconfigure(0, weight=1)
-    
-    receive_frame = tk.LabelFrame(root, text="Received messages and files", bg="#FF8DC7", padx=padding, pady=padding, width=(window_width/2 - padding*4), height=(window_height - padding*4))
-    receive_frame.grid(row=0, column=1, rowspan=2,sticky="nsew", padx=(padding*2,padding), pady=(padding,padding)) 
-    
-    # ! File frame widgets !
-    filename = "No file selected."
-    tk.Button(file_frame, background="white", padx=padding*8, text = "Upload file", ).grid(row=0, column=0, pady=padding*4)
-    tk.Label(file_frame, text=filename, justify=tk.LEFT, width=39, background="#FFACC7", padx=padding).grid(row=0, column=1, padx=padding*2)
-    #menu for choosing the encryption algorithm
-    file_algorithm = tk.IntVar()
-    tk.Label(file_frame, text="Choose algorithm", justify=tk.LEFT, padx=padding, background="#FFACC7").grid(row=1, column=0, sticky='nw')
-    tk.Radiobutton(file_frame, text="ECB", indicatoron=0, padx=padding*8, variable=file_algorithm, value=1, background="#FFACC7").grid(row=2, column=0, sticky='nw', pady=padding)
-    tk.Radiobutton(file_frame, text="CBC", indicatoron=0, padx=padding*8, variable=file_algorithm, value=2, background="#FFACC7").grid(row=3, column=0, sticky='nw', pady=padding)
-
-    tk.Button(file_frame, background="white", padx=padding*6, text = "Submit", ).grid(row=4, column=0, columnspan=2, sticky='se', pady=padding*10)
-    
-    # ! Message frame widgets !
-    # textbox for inputting text
-    tk.Text(message_frame, height=16, width=55).grid(row=0, column=0, sticky="nsew", padx=padding, pady = padding*2)
-    
-    #menu for choosing the encryption algorithm
-    message_algorithm = tk.IntVar()
-    tk.Label(message_frame, text="Choose algorithm", justify=tk.LEFT, padx=padding, background="#FFB9B9").grid(row=1, column=0, sticky='w', pady=padding)
-    tk.Radiobutton(message_frame, text="ECB", indicatoron=0, padx=padding*8, variable=message_algorithm, value=1, background="#FFB9B9").grid(row=2, column=0, sticky='w', pady=padding)
-    tk.Radiobutton(message_frame, text="CBC", indicatoron=0, padx=padding*8, variable=message_algorithm, value=2, background="#FFB9B9").grid(row=3, column=0, sticky='w', pady=padding)
-    
-    tk.Button(message_frame, background="white", padx=padding*6, text = "Submit", ).grid(row=4, column=0, sticky='e', pady=padding*2)
-    
-    # ! Receive frame widgets !
-    tk.Label(receive_frame, text="Unga bunga", justify=tk.LEFT, padx=padding, background="#FF8DC7").grid(row=0, column=0, sticky='w', pady=padding)
-    
-    receive_frame.grid_propagate(0)
-
-    root.mainloop()
+    def update_messages(self):
+        # TODO
+        
+        pass

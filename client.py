@@ -1,6 +1,7 @@
 import threading
 import user as u
 import argparse
+import gui
 
 host = "localhost"
 
@@ -11,7 +12,6 @@ def main(sendport, recivport):
     user = u.User(host, sendport, recivport)
     receive_thread = threading.Thread(target=user.receive_message)
     receive_thread.start()
-    
     
     while True:
         x = input()
@@ -29,6 +29,8 @@ def main(sendport, recivport):
             # print(user.friends_pubkey)
             print(user.session_key)
             
+    # main_window = gui.Window()
+    # main_window.mainloop()
             
 
 
