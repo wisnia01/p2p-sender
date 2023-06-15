@@ -101,10 +101,8 @@ class Window(tk.Tk):
         # TODO
         message = self.message_textbox.get(1.0, "end-1c")
         if self.message_algorithm.get() == 1:
-            print('seks')
             self.user.send_encrypted_message(message, method="ecb")
         elif self.message_algorithm.get() == 2:
-            print("dupa")
             self.user.send_encrypted_message(message, method="cbc")
     
     def update_messages(self):

@@ -1,10 +1,12 @@
 import socket
 import helpers
 import json
+import math
 import rsa_methods as rsa
 import cbc_methods as cbc
 import ecb_methods as ecb
 from Crypto.Cipher import AES
+
 
 class User:
     
@@ -17,13 +19,18 @@ class User:
         self.last_message = None
         self.session_key = None
         self.received_messages = 0
+        self.num_of_reciv_files = 0
+        self.num_of_already_reciv_files = 0
+        self.reciv_file = ""
         
-    def send_message(self, message, type="message", iv=None, method=None):
+    def send_message(self, message, type="message", iv=None, method=None, file_elem="1", ext="None"):
         data = {
             'Content-Type': type,
             'Message': message,
             'Iv': iv,
-            'Method': method
+            'Method': method,
+            'File_elements': file_elem,
+            'File_extension': ext
         }
         json_string = json.dumps(data)
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -32,22 +39,36 @@ class User:
         s.close()
 
     def receive_message(self):
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.bind((self.host, self.recivport))
         while True:
-            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            s.bind((self.host, self.recivport))
+
             s.listen(1)
             conn, addr = s.accept()
             json_string = conn.recv(1024).decode()
             data = json.loads(json_string)
+            method = data["Method"]
+            encrypted_message=data["Message"]
+            file_extension = data["File_extension"]
+            iv = data["Iv"]
             if data["Content-Type"]=="pubkey":
                 self.friends_pubkey=data["Message"]
-
             elif data["Content-Type"]=="sessionkey":
                 self.session_key=rsa.decrypt_message_with_privatekey(data["Message"], self.private_key)
+            elif data["Content-Type"]=="file":
+                self.num_of_reciv_files = data["File_elements"]
+                if method == "cbc":
+                    message = cbc.decrypt_cbc(encrypted_message, self.session_key, iv)
+                elif method == "ecb":
+                    message = ecb.decrypt_ecb(encrypted_message, self.session_key)
+                self.reciv_file = self.reciv_file + message
+                self.num_of_already_reciv_files = self.num_of_already_reciv_files + 1
+                if self.num_of_already_reciv_files == self.num_of_reciv_files:
+                    helpers.save_file("outputs/received_file."+file_extension, self.reciv_file)
+                    self.num_of_already_reciv_files = 0
+                    self.num_of_reciv_files = 0
+                    self.reciv_file = ""
             else:
-                encrypted_message=data["Message"]
-                iv = data["Iv"]
-                method = data["Method"]
                 if method == "cbc":
                     message = cbc.decrypt_cbc(encrypted_message, self.session_key, iv)
                 elif method == "ecb":
@@ -55,8 +76,8 @@ class User:
                 print("Received message:", message)
                 self.received_messages = self.received_messages + 1    
                 self.last_message = message
-            conn.close()
-            s.close()
+        conn.close()
+        s.close()
         
     def send_pubkey(self):
         self.send_message(self.public_key.decode('utf-8'), type="pubkey")
@@ -78,4 +99,18 @@ class User:
         elif method == "ecb":
             encrypted_message = ecb.encrypt_ecb(message, self.session_key)
         self.send_message(encrypted_message, iv=iv, method=method)
+        
+    def send_file(self, file, ext, method="ecb"):
+        iv = None
+        num_of_elem = math.ceil(len(file)/100)
+        for i in range(0, len(file), 100):
+            div_element = file[i:i+100]
+            
+            if method == "cbc":
+                iv, encrypted_message = cbc.encrypt_cbc(div_element, self.session_key)
+            elif method == "ecb":
+                encrypted_message = ecb.encrypt_ecb(div_element, self.session_key)
+            
+            self.send_message(encrypted_message, type="file", iv=iv, file_elem=num_of_elem, method=method, ext=ext)
+        
         
