@@ -100,7 +100,7 @@ class User:
             encrypted_message = ecb.encrypt_ecb(message, self.session_key)
         self.send_message(encrypted_message, iv=iv, method=method)
         
-    def send_file(self, file, ext, method="ecb"):
+    def send_file(self, file, ext, bar, method="ecb"):
         iv = None
         num_of_elem = math.ceil(len(file)/100)
         for i in range(0, len(file), 100):
@@ -112,5 +112,8 @@ class User:
                 encrypted_message = ecb.encrypt_ecb(div_element, self.session_key)
             
             self.send_message(encrypted_message, type="file", iv=iv, file_elem=num_of_elem, method=method, ext=ext)
-        
+                        
+            progress = 25
+            bar.set(bar.get() + progress)
+
         

@@ -16,23 +16,23 @@ def main(sendport, recivport):
 
 
     
-    while True:
-        x = input()
-        if x == "s":
-            user.send_encrypted_message("dupa")
-        elif x == "l":
-            print(user.last_message)
-        elif x == "sendpubkey":
-            user.send_pubkey()
-        elif x == "connect":
-            user.create_connection_with_friend()
-        elif x == "sendf":
-            file = helpers.read_file("test_files/sample.pdf")
-            user.send_file(file, "pdf")
-    # main_window = gui.Window(user)
-    # main_window.update_messages()
-    # main_window.check_if_connected()
-    # main_window.mainloop()
+    # while True:
+    #     x = input()
+    #     if x == "s":
+    #         user.send_encrypted_message("dupa")
+    #     elif x == "l":
+    #         print(user.last_message)
+    #     elif x == "sendpubkey":
+    #         user.send_pubkey()
+    #     elif x == "connect":
+    #         user.create_connection_with_friend()
+    #     elif x == "sendf":
+    #         file = helpers.read_file("test_files/website.jpg")
+    #         user.send_file(file, "jpg")
+    main_window = gui.Window(user)
+    main_window.update_messages()
+    main_window.check_if_connected()
+    main_window.mainloop()
             
 
 
