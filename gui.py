@@ -1,8 +1,10 @@
+import os
 import tkinter as tk
 import tkinter.ttk as ttk
 from tkinter import Button, Text, Label
 from tkinter import filedialog 
 import user as u
+import helpers
 
 class Window(tk.Tk):
     def __init__(self, user):
@@ -34,6 +36,8 @@ class Window(tk.Tk):
         self.receive_frame = tk.LabelFrame(self, text="Received messages and files", bg="#FF8DC7", padx=self.padding, pady=self.padding, width=(self.window_width/2 - self.padding*4), height=(self.window_height - self.padding*4))
         self.receive_frame.grid(row=0, column=1, rowspan=2,sticky="nsew", padx=(self.padding*2,self.padding), pady=(self.padding,self.padding)) 
         
+        self.file_path = tk.StringVar()
+        self.file_path.set("No file selected.")
         self.create_widgets()
         
         self.receive_frame.grid_propagate(0)
@@ -41,11 +45,11 @@ class Window(tk.Tk):
         self.user = user
         self.actual_received_messages = 0
 
+
     def create_widgets(self):
         # ! File frame widgets !
-        filename = "No file selected."
-        tk.Button(self.file_frame, background="white", padx=self.padding*8, text = "Upload file", command=self.upload_file).grid(row=0, column=0, pady=self.padding*4)
-        tk.Label(self.file_frame, text=filename, justify=tk.LEFT, width=39, background="#FFACC7", padx=self.padding).grid(row=0, column=1, padx=self.padding*2)
+        tk.Button(self.file_frame, background="white", padx=self.padding*8, text = "Upload file", command=self.choose_file).grid(row=0, column=0, pady=self.padding*4)
+        tk.Label(self.file_frame, textvariable=self.file_path, justify=tk.LEFT, width=39, background="#FFACC7", padx=self.padding).grid(row=0, column=1, padx=self.padding*2)
         
         #menu for choosing the encryption algorithm
         self.file_algorithm = tk.IntVar()
@@ -86,16 +90,16 @@ class Window(tk.Tk):
         self.connect_label = tk.Label(self.receive_frame, text="Not connected.", padx=self.padding*4, background="#FF8DC7")
         self.connect_label.grid(row=22, column=1, pady=self.padding)
         
-    def upload_file(self):
-        # TODO
-        pass
     
     def send_encrypted_file(self):
-        # TODO
-        # add progress bar moving 
-        self.progressbar.step(25)
+        file = helpers.read_file(self.file_path.get())
+        file_extension = os.path.splitext(self.file_path.get())[1]
         
-        pass
+        if self.file_algorithm.get() == 1:
+            self.user.send_file(file, file_extension, self.progress, method="ecb")
+        elif self.file_algorithm.get() == 2:
+            self.user.send_file(file, file_extension, self.progress, method="cbc")
+            
         
     def send_encrypted_message(self):
         # TODO
@@ -127,4 +131,6 @@ class Window(tk.Tk):
         if self.user.friends_pubkey and self.user.session_key:
             self.connect_label['text'] = "Connected."
         self.after(1000, self.check_if_connected)
-            
+
+    def choose_file(self):
+        self.file_path.set(filedialog.askopenfilename())
