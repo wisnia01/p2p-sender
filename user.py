@@ -83,7 +83,7 @@ class User:
         
     def send_pubkey(self):
         self.send_message(self.public_key.decode('utf-8'), type="pubkey")
-        print(self.public_key.decode('utf-8'))
+        #print(self.public_key.decode('utf-8'))
     
     def send_sessionkey(self):
         encrypted_sessionkey = rsa.encrypt_message_with_publickey(self.session_key, self.friends_pubkey)

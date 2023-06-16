@@ -104,22 +104,24 @@ class Window(tk.Tk):
             self.file_label['text'] = shortened_label
     
     def send_encrypted_file(self):
-        file = helpers.read_file(self.filename)
-        file_extension = os.path.splitext(self.filename)[1]
-        name = os.path.basename(self.filename).split(".")[0]
-        
-        if self.file_algorithm.get() == 1:
-            self.user.send_file(file, file_extension, name, self.progress, method="ecb")
-        elif self.file_algorithm.get() == 2:
-            self.user.send_file(file, file_extension, name, self.progress, method="cbc")
+        if(self.filename != "No file selected."):
+            file = helpers.read_file(self.filename)
+            file_extension = os.path.splitext(self.filename)[1]
+            name = os.path.basename(self.filename).split(".")[0]
+            
+            if self.file_algorithm.get() == 1:
+                self.user.send_file(file, file_extension, name, self.progress, method="ecb")
+            elif self.file_algorithm.get() == 2:
+                self.user.send_file(file, file_extension, name, self.progress, method="cbc")
             
         
     def send_encrypted_message(self):
         message = self.message_textbox.get(1.0, "end-1c")
-        if self.message_algorithm.get() == 1:
-            self.user.send_encrypted_message(message, method="ecb")
-        elif self.message_algorithm.get() == 2:
-            self.user.send_encrypted_message(message, method="cbc")
+        if(message != ""):
+            if self.message_algorithm.get() == 1:
+                self.user.send_encrypted_message(message, method="ecb")
+            elif self.message_algorithm.get() == 2:
+                self.user.send_encrypted_message(message, method="cbc")
     
     def update_messages(self):
         if self.actual_received_messages != self.user.received_messages:
@@ -131,10 +133,12 @@ class Window(tk.Tk):
         self.after(1000, self.update_messages)
 
     def send_pubkey(self):
-        self.user.send_pubkey()
+        if(self.connect_label['text'] != "Connected."):
+            self.user.send_pubkey()
     
     def create_connection_with_friend(self):
-        self.user.create_connection_with_friend()
+        if(self.connect_label['text'] != "Connected."):
+            self.user.create_connection_with_friend()
         
     def check_if_connected(self):
         if self.user.friends_pubkey and self.user.session_key:
