@@ -33,11 +33,9 @@ class Window(tk.Tk):
         self.message_frame = tk.LabelFrame(self, text="Send a message", bg="#FFB9B9", padx=self.padding, pady=self.padding, width=(self.window_width/2 - self.padding*4), height=(self.window_height/2 - self.padding*4))
         self.message_frame.grid(row=1, column=0, sticky="nsew", padx=(self.padding*3,self.padding), pady=(self.padding,self.padding))
         
-        self.receive_frame = tk.LabelFrame(self, text="Received messages and files", bg="#FF8DC7", padx=self.padding, pady=self.padding, width=(self.window_width/2 - self.padding*4), height=(self.window_height - self.padding*4))
+        self.receive_frame = tk.LabelFrame(self, text="Received messages", bg="#FF8DC7", padx=self.padding, pady=self.padding, width=(self.window_width/2 - self.padding*4), height=(self.window_height - self.padding*4))
         self.receive_frame.grid(row=0, column=1, rowspan=2,sticky="nsew", padx=(self.padding*2,self.padding), pady=(self.padding,self.padding)) 
-        
-        self.file_path = tk.StringVar()
-        self.file_path.set("No file selected.")
+
         self.create_widgets()
         
         self.receive_frame.grid_propagate(0)
@@ -48,11 +46,14 @@ class Window(tk.Tk):
 
     def create_widgets(self):
         # ! File frame widgets !
-        tk.Button(self.file_frame, background="white", padx=self.padding*8, text = "Upload file", command=self.choose_file).grid(row=0, column=0, pady=self.padding*4)
-        tk.Label(self.file_frame, textvariable=self.file_path, justify=tk.LEFT, width=39, background="#FFACC7", padx=self.padding).grid(row=0, column=1, padx=self.padding*2)
+        self.filename = "No file selected."
+        tk.Button(self.file_frame, background="white", padx=self.padding*8, text = "Upload file", command=self.upload_file).grid(row=0, column=0, pady=self.padding*4)
+        self.file_label = tk.Label(self.file_frame, text=self.filename, justify=tk.LEFT, width=39, background="#FFACC7", padx=self.padding)
+        self.file_label.grid(row=0, column=1, padx=self.padding*2)
         
         #menu for choosing the encryption algorithm
         self.file_algorithm = tk.IntVar()
+        self.file_algorithm.set(1)
         tk.Label(self.file_frame, text="Choose algorithm", justify=tk.LEFT, padx=self.padding, background="#FFACC7").grid(row=1, column=0, sticky='nw')
         tk.Radiobutton(self.file_frame, text="ECB", indicatoron=0, padx=self.padding*8, variable=self.file_algorithm, value=1, background="#FFACC7").grid(row=2, column=0, sticky='nw', pady=self.padding)
         tk.Radiobutton(self.file_frame, text="CBC", indicatoron=0, padx=self.padding*8, variable=self.file_algorithm, value=2, background="#FFACC7").grid(row=3, column=0, sticky='nw', pady=self.padding)
@@ -71,6 +72,7 @@ class Window(tk.Tk):
         
         #menu for choosing the encryption algorithm
         self.message_algorithm = tk.IntVar()
+        self.message_algorithm.set(1)
         tk.Label(self.message_frame, text="Choose algorithm", justify=tk.LEFT, padx=self.padding, background="#FFB9B9").grid(row=1, column=0, sticky='w', pady=self.padding)
         tk.Radiobutton(self.message_frame, text="ECB", indicatoron=0, padx=self.padding*8, variable=self.message_algorithm, value=1, background="#FFB9B9").grid(row=2, column=0, sticky='w', pady=self.padding)
         tk.Radiobutton(self.message_frame, text="CBC", indicatoron=0, padx=self.padding*8, variable=self.message_algorithm, value=2, background="#FFB9B9").grid(row=3, column=0, sticky='w', pady=self.padding)
@@ -90,29 +92,38 @@ class Window(tk.Tk):
         self.connect_label = tk.Label(self.receive_frame, text="Not connected.", padx=self.padding*4, background="#FF8DC7")
         self.connect_label.grid(row=22, column=1, pady=self.padding)
         
+    def upload_file(self):
+        self.filename = filedialog.askopenfilename()
+        if len(self.filename) < 52:
+            self.file_label['text'] = self.filename
+        else:
+            # if file name is too long to display
+            overflow = len(self.filename) - 52
+            shortened_label = self.filename[overflow:]
+            shortened_label = ".." + shortened_label[2:]
+            self.file_label['text'] = shortened_label
     
     def send_encrypted_file(self):
-        file = helpers.read_file(self.file_path.get())
-        file_extension = os.path.splitext(self.file_path.get())[1]
-        
-        if self.file_algorithm.get() == 1:
-            self.user.send_file(file, file_extension, self.progress, method="ecb")
-        elif self.file_algorithm.get() == 2:
-            self.user.send_file(file, file_extension, self.progress, method="cbc")
+        if(self.filename != "No file selected."):
+            file = helpers.read_file(self.filename)
+            file_extension = os.path.splitext(self.filename)[1]
+            name = os.path.basename(self.filename).split(".")[0]
+            
+            if self.file_algorithm.get() == 1:
+                self.user.send_file(file, file_extension, name, self.progress, method="ecb")
+            elif self.file_algorithm.get() == 2:
+                self.user.send_file(file, file_extension, name, self.progress, method="cbc")
             
         
     def send_encrypted_message(self):
-        # TODO
         message = self.message_textbox.get(1.0, "end-1c")
-        if self.message_algorithm.get() == 1:
-            self.user.send_encrypted_message(message, method="ecb")
-        elif self.message_algorithm.get() == 2:
-            self.user.send_encrypted_message(message, method="cbc")
+        if(message != ""):
+            if self.message_algorithm.get() == 1:
+                self.user.send_encrypted_message(message, method="ecb")
+            elif self.message_algorithm.get() == 2:
+                self.user.send_encrypted_message(message, method="cbc")
     
     def update_messages(self):
-        # TODO
-
-        # message = self.message_textbox.get(1.0, "end-1c")
         if self.actual_received_messages != self.user.received_messages:
             for idx in range(len(self.last_messages)-1, 0, -1):
                 self.last_messages[idx]['text'] = self.last_messages[idx-1]['text']
@@ -122,15 +133,14 @@ class Window(tk.Tk):
         self.after(1000, self.update_messages)
 
     def send_pubkey(self):
-        self.user.send_pubkey()
+        if(self.connect_label['text'] != "Connected."):
+            self.user.send_pubkey()
     
     def create_connection_with_friend(self):
-        self.user.create_connection_with_friend()
+        if(self.connect_label['text'] != "Connected."):
+            self.user.create_connection_with_friend()
         
     def check_if_connected(self):
         if self.user.friends_pubkey and self.user.session_key:
             self.connect_label['text'] = "Connected."
         self.after(1000, self.check_if_connected)
-
-    def choose_file(self):
-        self.file_path.set(filedialog.askopenfilename())

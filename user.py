@@ -23,14 +23,15 @@ class User:
         self.num_of_already_reciv_files = 0
         self.reciv_file = ""
         
-    def send_message(self, message, type="message", iv=None, method=None, file_elem="1", ext="None"):
+    def send_message(self, message, type="message", iv=None, method=None, file_elem="1", ext="None", file_name=""):
         data = {
             'Content-Type': type,
             'Message': message,
             'Iv': iv,
             'Method': method,
             'File_elements': file_elem,
-            'File_extension': ext
+            'File_extension': ext,
+            'File_name': file_name
         }
         json_string = json.dumps(data)
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -50,6 +51,7 @@ class User:
             method = data["Method"]
             encrypted_message=data["Message"]
             file_extension = data["File_extension"]
+            file_name = data["File_name"]
             iv = data["Iv"]
             if data["Content-Type"]=="pubkey":
                 self.friends_pubkey=data["Message"]
@@ -64,7 +66,7 @@ class User:
                 self.reciv_file = self.reciv_file + message
                 self.num_of_already_reciv_files = self.num_of_already_reciv_files + 1
                 if self.num_of_already_reciv_files == self.num_of_reciv_files:
-                    helpers.save_file("outputs/received_file."+file_extension, self.reciv_file)
+                    helpers.save_file("outputs/" + file_name +file_extension, self.reciv_file)
                     self.num_of_already_reciv_files = 0
                     self.num_of_reciv_files = 0
                     self.reciv_file = ""
@@ -81,7 +83,7 @@ class User:
         
     def send_pubkey(self):
         self.send_message(self.public_key.decode('utf-8'), type="pubkey")
-        print(self.public_key.decode('utf-8'))
+        #print(self.public_key.decode('utf-8'))
     
     def send_sessionkey(self):
         encrypted_sessionkey = rsa.encrypt_message_with_publickey(self.session_key, self.friends_pubkey)
@@ -100,9 +102,10 @@ class User:
             encrypted_message = ecb.encrypt_ecb(message, self.session_key)
         self.send_message(encrypted_message, iv=iv, method=method)
         
-    def send_file(self, file, ext, bar, method="ecb"):
+    def send_file(self, file, ext, file_name, bar, method="ecb"):
         iv = None
         num_of_elem = math.ceil(len(file)/100)
+        progress = 0
         for i in range(0, len(file), 100):
             div_element = file[i:i+100]
             
@@ -111,9 +114,8 @@ class User:
             elif method == "ecb":
                 encrypted_message = ecb.encrypt_ecb(div_element, self.session_key)
             
-            self.send_message(encrypted_message, type="file", iv=iv, file_elem=num_of_elem, method=method, ext=ext)
-                        
-            progress = 25
-            bar.set(bar.get() + progress)
-
-        
+            self.send_message(encrypted_message, type="file", iv=iv, file_elem=num_of_elem, method=method, ext=ext, file_name=file_name)
+            
+            progress += 100/num_of_elem
+            bar.set(progress)
+            
